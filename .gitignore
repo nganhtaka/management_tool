@@ -132,3 +132,6 @@ vue-argon-dashboard-master.zip
 vue-argon-dashboard-master/*
 
 .idea/
+
+management_tool_back/Scripts/
+management_tool_back/*.cfg
