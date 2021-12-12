@@ -11,6 +11,9 @@
           </h3>
         </div>
         <div class="col text-right">
+          <base-button type="primary" size="sm" @click="this.add_days_to_show(0)">Reset</base-button>
+          <base-button type="primary" size="sm" @click="this.add_days_to_show(-1)">-</base-button>
+          <base-button type="primary" size="sm" @click="this.add_days_to_show(1)">+</base-button>
           <base-button type="primary" size="sm" @click="this.newTask">Add task</base-button>
         </div>
       </div>
@@ -90,7 +93,11 @@ export default {
   data() {
     return {
       showModal:false,
-      actualTask : {task_name:"", task_action:"", task_type:""}
+      actualTask : {task_name:"", task_action:"", task_type:""},
+      nb_day_to_show : 7,
+      nb_day_default: 7,
+      today : new Date(),
+      columnsTable: [],
     }
   },
   methods: {
@@ -291,21 +298,43 @@ export default {
         console.log(error);
       }
     },
-    get_week_by_date(d) {
+    get_days_to_show() {
+      let d = new Date(this.today);
       this.weekActual = [];
       var week= new Array(); 
       // Starting Monday not Sunday
-      var list_day_of_week = ['Lundi ', 'Mardi ', 'Mercredi ', 'Jeudi ', 'Vendredi ', 'Samedi ', 'Dimanche '];
-      d.setDate((d.getDate() - d.getDay() +1));
-      week.push('Semaine ' + moment(new Date(d)).format('DD-MM-YYYY'));
-      for (var i = 0; i < 7; i++) {
+      var list_day_of_week = ['Dimanche','Lundi ', 'Mardi ', 'Mercredi ', 'Jeudi ', 'Vendredi ', 'Samedi '];
+      d.setDate((d.getDate() - Math.floor(this.nb_day_to_show / 2)));
+      while (d.getDay() > 5)
+        d.setDate(d.getDate() - 1);
+      
+      week.push('Teams');
+      for (var i = 0; i < this.nb_day_to_show; i++) {
           week.push(
-              list_day_of_week[i] + moment(new Date(d)).format('DD/MM')
+              list_day_of_week[d.getDay()] + moment(new Date(d)).format('DD/MM')
           );
           this.weekActual.push(new Date(d));
-          d.setDate(d.getDate() +1);
+          if (d.getDay() == 5) { 
+            // if friday, go next monday
+            d.setDate(d.getDate() + 3);
+          } else {
+            d.setDate(d.getDate() +1);
+          }
       }
       return week; 
+    },
+    _init() {
+    this.columnsTable = this.get_days_to_show();
+    this.getData();
+    },
+    add_days_to_show(more) {
+      if (more > 0)
+        this.nb_day_to_show+=2;
+      else if (this.nb_day_to_show >= this.nb_day_default && more < 0)
+        this.nb_day_to_show-=2;
+      else 
+        this.nb_day_to_show=this.nb_day_default;
+      this._init();
     },
     openTask(task_name, task_action, task_type) {
       this.showModal = true;
@@ -329,9 +358,7 @@ export default {
     }
   }, 
   created() {
-    let d = new Date();
-    this.columnsTable = this.get_week_by_date(d);
-    this.getData();
+    this._init();
   }
 };
 </script>
